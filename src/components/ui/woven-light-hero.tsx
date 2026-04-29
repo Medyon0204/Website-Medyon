@@ -1,0 +1,286 @@
+"use client";
+
+import { useRef, useEffect } from "react";
+import { motion, useAnimation } from "framer-motion";
+import * as THREE from "three";
+import Link from "next/link";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
+// Pre-allocate reusable vectors to avoid GC pressure in the animation loop
+const _cur = new THREE.Vector3();
+const _ori = new THREE.Vector3();
+const _vel = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _mouse3 = new THREE.Vector3();
+
+const WovenCanvas = () => {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mountRef.current) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    mountRef.current.appendChild(renderer.domElement);
+
+    const mouse = new THREE.Vector2(0, 0);
+    const clock = new THREE.Clock();
+
+    const PARTICLE_COUNT = 40000;
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const origPositions = new Float32Array(PARTICLE_COUNT * 3);
+    const colors = new Float32Array(PARTICLE_COUNT * 3);
+    const velocities = new Float32Array(PARTICLE_COUNT * 3);
+
+    const geometry = new THREE.BufferGeometry();
+    const torusKnot = new THREE.TorusKnotGeometry(1.5, 0.5, 200, 32);
+    const srcPos = torusKnot.attributes.position;
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const vi = i % srcPos.count;
+      const x = srcPos.getX(vi);
+      const y = srcPos.getY(vi);
+      const z = srcPos.getZ(vi);
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+      origPositions[i * 3] = x;
+      origPositions[i * 3 + 1] = y;
+      origPositions[i * 3 + 2] = z;
+
+      // Medyon CI palette: teal (#00c2cb, hue ~0.51) → magenta (#e6007e, hue ~0.91)
+      const color = new THREE.Color();
+      if (Math.random() < 0.08) {
+        color.setRGB(0.88, 0.94, 1.0); // white sparkle
+      } else {
+        color.setHSL(0.51 + Math.random() * 0.40, 0.95, 0.62);
+      }
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.02,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      opacity: 0.88,
+      depthWrite: false,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    const onMouseMove = (e: MouseEvent) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener("mousemove", onMouseMove);
+
+    let animId: number;
+
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      _mouse3.set(mouse.x * 3, mouse.y * 3, 0);
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
+
+        _cur.set(positions[ix], positions[iy], positions[iz]);
+        _ori.set(origPositions[ix], origPositions[iy], origPositions[iz]);
+        _vel.set(velocities[ix], velocities[iy], velocities[iz]);
+
+        const dist = _cur.distanceTo(_mouse3);
+        if (dist < 1.5) {
+          const force = (1.5 - dist) * 0.01;
+          _dir.subVectors(_cur, _mouse3).normalize();
+          _vel.addScaledVector(_dir, force);
+        }
+
+        _dir.subVectors(_ori, _cur).multiplyScalar(0.001);
+        _vel.add(_dir);
+        _vel.multiplyScalar(0.95);
+
+        positions[ix] += _vel.x;
+        positions[iy] += _vel.y;
+        positions[iz] += _vel.z;
+        velocities[ix] = _vel.x;
+        velocities[iy] = _vel.y;
+        velocities[iz] = _vel.z;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+      points.rotation.y = elapsed * 0.05;
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    const onResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(animId);
+      renderer.dispose();
+      geometry.dispose();
+      material.dispose();
+      torusKnot.dispose();
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+    };
+  }, []);
+
+  return <div ref={mountRef} className="absolute inset-0 z-0" />;
+};
+
+export function WovenLightHero() {
+  const { locale } = useLanguage();
+  const tr = t[locale].hero;
+  const textControls = useAnimation();
+  const buttonControls = useAnimation();
+
+  useEffect(() => {
+    textControls.start((i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.18 + 1.2,
+        duration: 1.1,
+        ease: [0.2, 0.65, 0.3, 0.9],
+      },
+    }));
+    buttonControls.start({
+      opacity: 1,
+      transition: { delay: 2.3, duration: 0.9 },
+    });
+  }, [textControls, buttonControls]);
+
+  return (
+    <section
+      className="relative w-full flex flex-col items-center justify-center overflow-hidden"
+      style={{ height: "100vh", backgroundColor: "#010a1b" }}
+    >
+      <WovenCanvas />
+
+      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto w-full">
+        {/* Label pill */}
+        <motion.div
+          custom={0}
+          initial={{ opacity: 0, y: 20 }}
+          animate={textControls}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 text-[10px] uppercase tracking-[0.4em]"
+          style={{
+            border: "1px solid rgba(0, 194, 203, 0.28)",
+            background: "rgba(0, 194, 203, 0.07)",
+            color: "rgba(0, 194, 203, 0.85)",
+          }}
+        >
+          {tr.label}
+        </motion.div>
+
+        {/* Headline */}
+        <h1
+          className="font-black tracking-tight leading-[1.05]"
+          style={{ fontSize: "clamp(2.2rem, 6.5vw, 5.5rem)" }}
+        >
+          <motion.span
+            custom={1}
+            initial={{ opacity: 0, y: 50 }}
+            animate={textControls}
+            className="block"
+            style={{ color: "#f0f4f8" }}
+          >
+            {tr.headline1}
+          </motion.span>
+          <motion.span
+            custom={2}
+            initial={{ opacity: 0, y: 50 }}
+            animate={textControls}
+            className="block text-gradient-dual"
+          >
+            {tr.headline2}
+          </motion.span>
+        </h1>
+
+        {/* Subtitle */}
+        <motion.p
+          custom={3}
+          initial={{ opacity: 0, y: 30 }}
+          animate={textControls}
+          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed"
+          style={{ color: "rgba(240, 244, 248, 0.58)" }}
+        >
+          {tr.sub}{" "}
+          <span style={{ color: "#f0f4f8", fontWeight: 600 }}>{tr.subBold}</span>
+          {tr.subEnd}
+        </motion.p>
+
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={buttonControls}
+          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Link
+            href="/kontakt"
+            className="inline-flex items-center gap-2 bg-magenta text-white font-semibold px-7 py-4 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_28px_rgba(230,0,126,0.4)] hover:shadow-[0_0_48px_rgba(230,0,126,0.6)] active:scale-95 text-sm"
+          >
+            {tr.ctaPrimary}
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/medyon-methode"
+            className="inline-flex items-center gap-2 font-medium text-sm group transition-colors duration-200 hover:text-white"
+            style={{ color: "rgba(240,244,248,0.55)" }}
+          >
+            {tr.ctaSecondary}
+            <ArrowRight
+              size={15}
+              className="group-hover:translate-x-1 transition-transform"
+            />
+          </Link>
+        </motion.div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        style={{ color: "rgba(240,244,248,0.3)" }}
+      >
+        <span className="text-xs uppercase tracking-widest">Scroll</span>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ChevronDown size={18} />
+        </motion.div>
+      </div>
+    </section>
+  );
+}

@@ -136,7 +136,7 @@ export function Header() {
           "sticky top-0 z-40 transition-all duration-300",
           scrolled
             ? "bg-night/85 backdrop-blur-md border-b border-white/8 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-            : "bg-transparent border-b border-white/5"
+            : "bg-transparent border-b border-transparent"
         )}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
