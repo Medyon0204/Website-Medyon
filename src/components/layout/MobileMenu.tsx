@@ -6,6 +6,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown, Mail, CalendarDays } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/constants";
 import { MedyonLogo } from "@/components/ui/MedyonLogo";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
+function translateLabel(label: string, locale: "de" | "en"): string {
+  const nav = t[locale].nav;
+  const map: Record<string, string> = {
+    "Medyon Methode": nav.methode,
+    "Leistungen": nav.leistungen,
+    "KI-Automatisierungen": nav.services.ki,
+    "Marketing Beratung": nav.services.beratung,
+    "Werbung": nav.services.werbung,
+    "Unternehmensberatung": nav.services.unternehmens,
+    "Marktanalyse": nav.services.markt,
+    "Über Uns": nav.ueberUns,
+    "Vision": nav.vision,
+    "Werte": nav.werte,
+    "Wir": nav.wir,
+    "Karriere": nav.karriere,
+  };
+  return map[label] ?? label;
+}
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -14,12 +36,13 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const { locale } = useLanguage();
+  const tr = t[locale];
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -29,7 +52,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             onClick={onClose}
           />
 
-          {/* Drawer */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -40,33 +62,36 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/8">
               <MedyonLogo iconSize={30} />
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/8 transition-colors"
-                aria-label="Menü schließen"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-3">
+                <LanguageSwitcher />
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/8 transition-colors"
+                  aria-label="Menü schließen"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Pre-header info */}
             <div className="px-6 py-4 border-b border-white/8 flex flex-col gap-3">
-              <Link
+              <a
                 href="mailto:info@medyon.de"
                 onClick={onClose}
                 className="flex items-center gap-2 text-text-muted hover:text-text-secondary transition-colors text-sm"
               >
                 <Mail size={14} />
                 info@medyon.de
-              </Link>
-              <Link
-                href="/kontakt"
+              </a>
+              <a
+                href="mailto:info@medyon.de?subject=Terminanfrage"
                 onClick={onClose}
                 className="flex items-center gap-2 text-teal text-sm font-medium"
               >
                 <CalendarDays size={14} />
-                Termin vereinbaren
-              </Link>
+                {tr.preheader.termin}
+              </a>
             </div>
 
             {/* Navigation */}
@@ -80,7 +105,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                         onClick={() => setOpenDropdown(isOpen ? null : item.label)}
                         className="w-full flex items-center justify-between px-3 py-3 rounded-lg text-text-primary font-medium hover:bg-white/6 transition-colors text-left"
                       >
-                        {item.label}
+                        {translateLabel(item.label, locale)}
                         <ChevronDown
                           size={16}
                           className={`text-text-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
@@ -104,7 +129,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                     onClick={onClose}
                                     className="block px-3 py-2.5 text-sm text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                   >
-                                    {sub.label}
+                                    {translateLabel(sub.label, locale)}
                                   </Link>
                                   {sub.children && (
                                     <div className="pl-4 flex flex-col gap-0.5">
@@ -115,7 +140,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                           onClick={onClose}
                                           className="block px-3 py-2 text-xs text-text-muted hover:text-text-secondary hover:bg-white/5 rounded-lg transition-colors"
                                         >
-                                          → {child.label}
+                                          → {translateLabel(child.label, locale)}
                                         </Link>
                                       ))}
                                     </div>
@@ -137,7 +162,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     onClick={onClose}
                     className="px-3 py-3 rounded-lg text-text-primary font-medium hover:bg-white/6 hover:text-white transition-colors block"
                   >
-                    {item.label}
+                    {translateLabel(item.label, locale)}
                   </Link>
                 );
               })}
@@ -150,7 +175,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 onClick={onClose}
                 className="block w-full text-center bg-magenta text-white font-semibold py-3.5 px-6 rounded-lg hover:bg-magenta-light transition-colors shadow-[0_0_20px_rgba(230,0,126,0.3)]"
               >
-                Kontakt aufnehmen
+                {tr.nav.kontakt}
               </Link>
             </div>
           </motion.div>
