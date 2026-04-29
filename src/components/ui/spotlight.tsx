@@ -4,9 +4,10 @@ import { cn } from "@/lib/cn";
 interface SpotlightProps {
   className?: string;
   fill?: string;
+  filterId?: string;
 }
 
-export function Spotlight({ className, fill = "white" }: SpotlightProps) {
+export function Spotlight({ className, fill = "white", filterId = "spotlight-filter" }: SpotlightProps) {
   return (
     <svg
       className={cn(
@@ -17,7 +18,7 @@ export function Spotlight({ className, fill = "white" }: SpotlightProps) {
       viewBox="0 0 3787 2842"
       fill="none"
     >
-      <g filter="url(#ki-spotlight-filter)">
+      <g filter={`url(#${filterId})`}>
         <ellipse
           cx="1924.71"
           cy="273.501"
@@ -30,7 +31,7 @@ export function Spotlight({ className, fill = "white" }: SpotlightProps) {
       </g>
       <defs>
         <filter
-          id="ki-spotlight-filter"
+          id={filterId}
           x="0.860352"
           y="0.838989"
           width="3785.16"

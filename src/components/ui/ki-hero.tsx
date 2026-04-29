@@ -30,6 +30,7 @@ export function KIHero({ headline, description }: KIHeroProps) {
           <Spotlight
             className="-top-40 left-0 md:left-60 md:-top-20"
             fill="#00c2cb"
+            filterId="ki-hero-spotlight"
           />
 
           <div className="flex flex-col md:flex-row h-full" style={{ minHeight: '460px' }}>

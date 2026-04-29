@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import t from "@/lib/translations";
+import { ReactNode } from "react";
 
 interface ServicePageTemplateProps {
   title: string;
@@ -15,6 +16,7 @@ interface ServicePageTemplateProps {
   solution: string;
   deliverables: readonly string[];
   processSteps: readonly { readonly title: string; readonly desc: string }[];
+  midSection?: ReactNode;
 }
 
 export function ServicePageTemplate({
@@ -26,6 +28,7 @@ export function ServicePageTemplate({
   solution,
   deliverables,
   processSteps,
+  midSection,
 }: ServicePageTemplateProps) {
   const { locale } = useLanguage();
   const tr = t[locale].serviceTemplate;
@@ -93,6 +96,8 @@ export function ServicePageTemplate({
           </div>
         </div>
       </section>
+
+      {midSection}
 
       {/* Deliverables */}
       <section className="py-16 px-6 bg-night-50">
