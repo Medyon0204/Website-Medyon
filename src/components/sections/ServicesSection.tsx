@@ -6,9 +6,18 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ServiceCard } from "@/components/ui/ServiceCard";
 import { SERVICES } from "@/lib/constants";
 import { fadeUpVariants } from "@/lib/animations";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
 
 export function ServicesSection() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { locale } = useLanguage();
+  const tr = t[locale];
+
+  const servicesWithTranslatedDesc = SERVICES.map((service) => ({
+    ...service,
+    description: tr.serviceCards[service.id as keyof typeof tr.serviceCards] ?? service.description,
+  }));
 
   return (
     <section className="py-28 px-6" id="leistungen">
@@ -19,18 +28,18 @@ export function ServicesSection() {
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
           >
-            <SectionLabel>Was wir tun</SectionLabel>
+            <SectionLabel>{tr.services.label}</SectionLabel>
             <h2 className="text-4xl sm:text-5xl font-black text-text-primary leading-tight tracking-tight mb-4">
-              Unsere <span className="text-gradient-magenta">Leistungen</span>
+              {tr.services.heading} <span className="text-gradient-magenta">{tr.services.headingAccent}</span>
             </h2>
             <p className="text-text-secondary text-lg max-w-2xl">
-              Von der Strategie bis zum finalen Screen — wir begleiten Ihre Marke ganzheitlich über alle relevanten Touchpoints.
+              {tr.services.sub}
             </p>
           </motion.div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {SERVICES.map((service, i) => (
+          {servicesWithTranslatedDesc.map((service, i) => (
             <ServiceCard key={service.id} service={service} index={i} />
           ))}
         </div>

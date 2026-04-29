@@ -1,7 +1,12 @@
-import { MARQUEE_ITEMS } from "@/lib/constants";
+"use client";
+
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
 
 export function MarqueeSection() {
-  const doubled = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+  const { locale } = useLanguage();
+  const items = t[locale].marqueeItems;
+  const doubled = [...items, ...items];
 
   return (
     <div className="py-5 border-y border-white/6 bg-night-50 overflow-hidden relative">

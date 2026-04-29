@@ -5,12 +5,15 @@ import { useInView } from "react-intersection-observer";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { METHODE_STEPS } from "@/lib/constants";
 import { fadeUpVariants } from "@/lib/animations";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
 
 export function MethodeSection() {
   const [headerRef, headerInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [stepsRef, stepsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { locale } = useLanguage();
+  const tr = t[locale];
 
   return (
     <section className="py-28 px-6 bg-night-50 relative overflow-hidden">
@@ -25,9 +28,9 @@ export function MethodeSection() {
             initial="hidden"
             animate={headerInView ? "visible" : "hidden"}
           >
-            <SectionLabel color="teal">Unser Prozess</SectionLabel>
+            <SectionLabel color="teal">{tr.methode.label}</SectionLabel>
             <h2 className="text-4xl sm:text-5xl font-black text-text-primary leading-tight tracking-tight">
-              Die <span className="text-gradient-teal">Medyon Methode</span>
+              {tr.methode.heading} <span className="text-gradient-teal">{tr.methode.headingAccent}</span>
             </h2>
           </motion.div>
 
@@ -41,7 +44,7 @@ export function MethodeSection() {
               href="/medyon-methode"
               className="inline-flex items-center gap-2 text-teal font-medium text-sm hover:gap-3 transition-all duration-200"
             >
-              Methode im Detail
+              {tr.methode.detail}
               <ArrowRight size={15} />
             </Link>
           </motion.div>
@@ -59,9 +62,9 @@ export function MethodeSection() {
             />
           </div>
 
-          {METHODE_STEPS.map((step, i) => (
+          {tr.methodeSteps.map((step, i) => (
             <motion.div
-              key={step.step}
+              key={step.title}
               initial={{ opacity: 0, y: 32 }}
               animate={stepsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.2 + i * 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -71,7 +74,7 @@ export function MethodeSection() {
               <div className="relative z-10 flex items-center gap-3 mb-5">
                 <div className="w-14 h-14 rounded-2xl bg-night border border-white/10 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(230,0,126,0.15)]">
                   <span className="text-magenta font-black text-xl leading-none">
-                    {String(step.step).padStart(2, "0")}
+                    {String(i + 1).padStart(2, "0")}
                   </span>
                 </div>
               </div>
