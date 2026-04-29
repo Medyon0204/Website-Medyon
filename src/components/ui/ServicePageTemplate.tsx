@@ -49,7 +49,7 @@ export function ServicePageTemplate({
         />
         <div className="max-w-5xl mx-auto relative z-10">
           <SectionLabel color={accentColor}>{subtitle}</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-5">
+          <h1 className="text-[clamp(1.6rem,6.5vw,3rem)] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-5 hyphens-auto break-words">
             {title.split(" ").map((word, i, arr) =>
               i === arr.length - 1 ? (
                 <span key={i} className={isMagenta ? "text-gradient-magenta" : "text-gradient-teal"}>

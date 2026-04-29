@@ -15,7 +15,7 @@ export default function WertePage() {
       <section className="pt-24 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
           <SectionLabel color="teal">Über Uns</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-5">Unsere <span className="text-gradient-teal">Werte</span></h1>
+          <h1 className="text-[2rem] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-5">Unsere <span className="text-gradient-teal">Werte</span></h1>
           <p className="text-text-secondary text-xl max-w-2xl leading-relaxed">Die Überzeugungen, die unsere Arbeit täglich prägen.</p>
         </div>
       </section>

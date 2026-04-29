@@ -8,7 +8,7 @@ export default function VisionPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-magenta/6 blur-[120px] rounded-full pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10">
           <SectionLabel>Über Uns</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-6">Unsere <span className="text-gradient-magenta">Vision</span></h1>
+          <h1 className="text-[2rem] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-6">Unsere <span className="text-gradient-magenta">Vision</span></h1>
           <p className="text-text-secondary text-xl leading-relaxed mb-10 max-w-2xl">
             Wir glauben, dass jedes B2B-Unternehmen das Potenzial hat, die stärkste Marke in seinem Markt zu werden — wenn Strategie, Design und digitale Präsenz optimal zusammenspielen.
           </p>

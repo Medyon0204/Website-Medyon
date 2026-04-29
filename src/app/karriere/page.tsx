@@ -16,7 +16,7 @@ export default function KarrierePage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-magenta/6 blur-[100px] rounded-full pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10">
           <SectionLabel>Werde Teil des Teams</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-5">
+          <h1 className="text-[2rem] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-5">
             Karriere bei <span className="text-gradient-magenta">Medyon</span>
           </h1>
           <p className="text-text-secondary text-xl max-w-2xl leading-relaxed">

@@ -7,7 +7,7 @@ export default function InsightsPage() {
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-5xl mx-auto">
           <SectionLabel color="teal">Wissen & Trends</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-5">
+          <h1 className="text-[2rem] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-5">
             <span className="text-gradient-teal">Insights</span>
           </h1>
           <p className="text-text-secondary text-xl max-w-2xl leading-relaxed">Strategische Einblicke, Branchentrends und Expertise aus der Praxis — für B2B-Entscheider.</p>

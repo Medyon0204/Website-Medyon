@@ -15,7 +15,7 @@ export default function KontaktPage() {
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionLabel>Schreiben Sie uns</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl font-black text-text-primary tracking-tight mb-4">
+          <h1 className="text-[2rem] sm:text-5xl lg:text-6xl font-black text-text-primary tracking-tight mb-4">
             Jetzt <span className="text-gradient-magenta">Kontakt</span> aufnehmen
           </h1>
           <p className="text-text-secondary text-xl max-w-xl leading-relaxed">

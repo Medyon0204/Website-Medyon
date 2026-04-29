@@ -17,7 +17,7 @@ export default function MedyonMethodePage() {
         <div className="absolute inset-0 bg-gradient-radial from-teal/8 via-transparent to-transparent" />
         <div className="max-w-5xl mx-auto relative z-10">
           <SectionLabel color="teal">Unser Prozess</SectionLabel>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-text-primary tracking-tight mb-6">
+          <h1 className="text-[2rem] sm:text-5xl lg:text-7xl font-black text-text-primary tracking-tight mb-6">
             Die <span className="text-gradient-teal">Medyon Methode</span>
           </h1>
           <p className="text-text-secondary text-xl max-w-2xl leading-relaxed">
