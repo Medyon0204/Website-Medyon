@@ -11,6 +11,7 @@ export function Footer() {
   const year = new Date().getFullYear();
   const { locale } = useLanguage();
   const tr = t[locale].footer;
+  const serviceNames = t[locale].serviceNames;
 
   return (
     <footer className="bg-night-50 border-t border-white/8 mt-32">
@@ -49,7 +50,7 @@ export function Footer() {
               {SERVICES.map((service) => (
                 <li key={service.id}>
                   <Link href={service.href} className="text-text-muted text-sm hover:text-text-secondary transition-colors">
-                    {service.title}
+                    {serviceNames[service.id as keyof typeof serviceNames] ?? service.title}
                   </Link>
                 </li>
               ))}
