@@ -16,6 +16,7 @@ export function ServicesSection() {
 
   const servicesWithTranslatedDesc = SERVICES.map((service) => ({
     ...service,
+    title: tr.serviceNames[service.id as keyof typeof tr.serviceNames] ?? service.title,
     description: tr.serviceCards[service.id as keyof typeof tr.serviceCards] ?? service.description,
   }));
 

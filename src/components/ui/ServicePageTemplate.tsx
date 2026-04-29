@@ -138,7 +138,7 @@ export function ServicePageTemplate({
 
       {/* CTA */}
       <section className="py-24 px-6 text-center">
-        <h2 className="text-3xl font-black text-text-primary mb-4">{title} anfragen</h2>
+        <h2 className="text-3xl font-black text-text-primary mb-4">{tr.ctaHeadingPrefix}{title}{tr.ctaHeadingSuffix}</h2>
         <p className="text-text-secondary mb-8 max-w-md mx-auto text-sm">
           {tr.ctaSub}
         </p>

@@ -144,7 +144,7 @@ export function Header() {
           <div className="flex flex-col gap-0.5 shrink-0">
             <MedyonLogo iconSize={32} />
             <span className="hidden lg:block text-[10px] text-text-muted tracking-wide leading-tight pl-0.5">
-              Markenpositionierung für B2B-Unternehmen&nbsp;/&nbsp;Medyon Methode
+              {tr.headerSubtext}
             </span>
           </div>
 
