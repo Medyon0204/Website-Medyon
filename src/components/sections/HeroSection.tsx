@@ -47,7 +47,7 @@ export function HeroSection() {
 
           <motion.h1
             variants={fadeUpVariants}
-            className="text-[clamp(1.6rem,6.5vw,3rem)] sm:text-5xl lg:text-7xl xl:text-8xl font-black leading-tight sm:leading-[1.03] tracking-tight mb-6"
+            className="text-[1.75rem] sm:text-5xl lg:text-7xl xl:text-8xl font-black leading-tight sm:leading-[1.03] tracking-tight mb-6"
           >
             <span className="text-text-primary block">Markenpositionierung,</span>
             <span className="text-gradient-dual block mt-1">die wirkt.</span>
