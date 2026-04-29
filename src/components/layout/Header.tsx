@@ -9,8 +9,30 @@ import { MedyonLogo } from "@/components/ui/MedyonLogo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { cn } from "@/lib/cn";
 import type { NavDropdownItem } from "@/types/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+import type { Locale } from "@/lib/translations";
 
-function DropdownPanel({ items }: { items: NavDropdownItem[] }) {
+function translateNavLabel(label: string, locale: Locale): string {
+  const nav = t[locale].nav;
+  const map: Record<string, string> = {
+    "Medyon Methode": nav.methode,
+    "Leistungen": nav.leistungen,
+    "KI-Automatisierungen": nav.services.ki,
+    "Marketing Beratung": nav.services.beratung,
+    "Werbung": nav.services.werbung,
+    "Unternehmensberatung": nav.services.unternehmens,
+    "Marktanalyse": nav.services.markt,
+    "Über Uns": nav.ueberUns,
+    "Vision": nav.vision,
+    "Werte": nav.werte,
+    "Wir": nav.wir,
+    "Karriere": nav.karriere,
+  };
+  return map[label] ?? label;
+}
+
+function DropdownPanel({ items, locale }: { items: NavDropdownItem[]; locale: Locale }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -8, scale: 0.97 }}
@@ -26,7 +48,7 @@ function DropdownPanel({ items }: { items: NavDropdownItem[] }) {
               href={item.href}
               className="flex items-center justify-between px-4 py-2.5 text-sm text-text-secondary hover:text-white hover:bg-white/6 transition-colors group"
             >
-              <span>{item.label}</span>
+              <span>{translateNavLabel(item.label, locale)}</span>
               {item.children && (
                 <ChevronDown size={13} className="text-text-muted rotate-[-90deg]" />
               )}
@@ -39,7 +61,7 @@ function DropdownPanel({ items }: { items: NavDropdownItem[] }) {
                     href={child.href}
                     className="block px-3 py-2 text-xs text-text-muted hover:text-teal transition-colors"
                   >
-                    {child.label}
+                    {translateNavLabel(child.label, locale)}
                   </Link>
                 ))}
               </div>
@@ -51,7 +73,7 @@ function DropdownPanel({ items }: { items: NavDropdownItem[] }) {
   );
 }
 
-function NavItem({ item }: { item: (typeof NAV_ITEMS)[number] }) {
+function NavItem({ item, locale }: { item: (typeof NAV_ITEMS)[number]; locale: Locale }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -71,7 +93,7 @@ function NavItem({ item }: { item: (typeof NAV_ITEMS)[number] }) {
         href={item.href!}
         className="text-sm text-text-secondary hover:text-white transition-colors duration-200 font-medium px-1 py-1"
       >
-        {item.label}
+        {translateNavLabel(item.label, locale)}
       </Link>
     );
   }
@@ -84,13 +106,13 @@ function NavItem({ item }: { item: (typeof NAV_ITEMS)[number] }) {
       onMouseLeave={() => setOpen(false)}
     >
       <button className="flex items-center gap-1 text-sm text-text-secondary hover:text-white transition-colors duration-200 font-medium px-1 py-1 cursor-pointer">
-        {item.label}
+        {translateNavLabel(item.label, locale)}
         <ChevronDown
           size={14}
           className={`text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
-      <AnimatePresence>{open && <DropdownPanel items={item.dropdown} />}</AnimatePresence>
+      <AnimatePresence>{open && <DropdownPanel items={item.dropdown} locale={locale} />}</AnimatePresence>
     </div>
   );
 }
@@ -98,6 +120,8 @@ function NavItem({ item }: { item: (typeof NAV_ITEMS)[number] }) {
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { locale } = useLanguage();
+  const tr = t[locale];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -127,7 +151,7 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-6 ml-4">
             {NAV_ITEMS.map((item) => (
-              <NavItem key={item.label} item={item} />
+              <NavItem key={item.label} item={item} locale={locale} />
             ))}
           </nav>
 
@@ -139,7 +163,7 @@ export function Header() {
             href="/kontakt"
             className="hidden lg:inline-flex items-center gap-2 bg-magenta text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_16px_rgba(230,0,126,0.3)] hover:shadow-[0_0_28px_rgba(230,0,126,0.5)] active:scale-95"
           >
-            Kontakt
+            {tr.nav.kontakt}
           </Link>
 
           {/* Mobile Menu Button */}

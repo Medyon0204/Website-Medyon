@@ -5,8 +5,12 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { fadeUpVariants, staggerContainerVariants } from "@/lib/animations";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
 
 export function HeroSection() {
+  const { locale } = useLanguage();
+  const tr = t[locale].hero;
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div className="absolute inset-0 bg-night" />
@@ -31,24 +35,23 @@ export function HeroSection() {
           className="max-w-4xl"
         >
           <motion.div variants={fadeUpVariants}>
-            <SectionLabel>B2B Marketing &amp; Digitale Werbung</SectionLabel>
+            <SectionLabel>{tr.label}</SectionLabel>
           </motion.div>
 
           <motion.h1
             variants={fadeUpVariants}
             className="text-[1.75rem] sm:text-5xl lg:text-7xl xl:text-8xl font-black leading-tight sm:leading-[1.03] tracking-tight mb-6"
           >
-            <span className="text-text-primary block">Markenpositionierung,</span>
-            <span className="text-gradient-dual block mt-1">die wirkt.</span>
+            <span className="text-text-primary block">{tr.headline1}</span>
+            <span className="text-gradient-dual block mt-1">{tr.headline2}</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUpVariants}
             className="text-text-secondary text-lg sm:text-xl leading-relaxed max-w-2xl mb-10"
           >
-            Wir verbinden Strategie, Design und digitale Werbung –{" "}
-            <span className="text-text-primary">für B2B-Unternehmen</span>, die mehr als nur
-            sichtbar sein wollen.
+            {tr.sub}{" "}
+            <span className="text-text-primary">{tr.subBold}</span>{tr.subEnd}
           </motion.p>
 
           <motion.div variants={fadeUpVariants} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -56,14 +59,14 @@ export function HeroSection() {
               href="/kontakt"
               className="inline-flex items-center gap-2 bg-magenta text-white font-semibold px-7 py-4 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_28px_rgba(230,0,126,0.4)] hover:shadow-[0_0_48px_rgba(230,0,126,0.6)] active:scale-95 text-sm"
             >
-              Jetzt Termin vereinbaren
+              {tr.ctaPrimary}
               <ArrowRight size={16} />
             </Link>
             <Link
               href="/medyon-methode"
               className="inline-flex items-center gap-2 text-text-secondary hover:text-white transition-colors duration-200 font-medium text-sm group"
             >
-              Unsere Methode entdecken
+              {tr.ctaSecondary}
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>
