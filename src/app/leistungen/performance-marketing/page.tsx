@@ -1,18 +1,22 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ServicePageTemplate } from "@/components/ui/ServicePageTemplate";
-export const metadata: Metadata = { title: "Performance Marketing", description: "Messbare Ergebnisse durch datengetriebene Kampagnen." };
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
 export default function PerformanceMarketingPage() {
+  const { locale } = useLanguage();
+  const tr = t[locale].servicePages['performance-marketing'];
   return (
-    <ServicePageTemplate title="Performance Marketing" subtitle="Leistung" description="Messbare Ergebnisse durch datengetriebene Kampagnen auf allen relevanten Kanälen." accentColor="magenta"
-      problem="Viele Unternehmen investieren in Marketing, ohne zu wissen, was tatsächlich wirkt. Budget wird verschwendet, ROI bleibt unklar."
-      solution="Wir planen, schalten und optimieren Kampagnen konsequent datenbasiert — mit klaren KPIs und transparentem Reporting."
-      deliverables={["Kanal- & Zielgruppenanalyse","Kampagnenkonzept & Creatives","Setup auf Google, Meta, LinkedIn","Laufendes Monitoring","A/B-Testing","Monatliche Performance-Reports"]}
-      processSteps={[
-        { title: "Analyse & Zielsetzung", desc: "IST-Analyse, KPI-Definition und Kanalauswahl." },
-        { title: "Kampagnenplanung", desc: "Strategie, Budget-Allokation und Creative-Briefing." },
-        { title: "Setup & Launch", desc: "Technisches Setup, Tracking und Kampagnenstart." },
-        { title: "Optimierung", desc: "Kontinuierliche Datenauswertung und Justierung." },
-      ]}
+    <ServicePageTemplate
+      title="Performance Marketing"
+      subtitle={tr.subtitle}
+      description={tr.description}
+      accentColor="magenta"
+      problem={tr.problem}
+      solution={tr.solution}
+      deliverables={tr.deliverables}
+      processSteps={tr.processSteps}
     />
   );
 }

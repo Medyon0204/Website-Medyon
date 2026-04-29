@@ -1,18 +1,22 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ServicePageTemplate } from "@/components/ui/ServicePageTemplate";
-export const metadata: Metadata = { title: "Unternehmensberatung", description: "Ganzheitliche Beratung für nachhaltiges Wachstum." };
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
 export default function UnternehmensberatungPage() {
+  const { locale } = useLanguage();
+  const tr = t[locale].servicePages['unternehmensberatung'];
   return (
-    <ServicePageTemplate title="Unternehmensberatung" subtitle="Leistung" description="Ganzheitliche Beratung für nachhaltiges Wachstum und klare Marktpositionierung." accentColor="magenta"
-      problem="Unternehmen verlieren sich oft im Tagesgeschäft und verlieren den strategischen Blick auf Marktveränderungen, Wettbewerb und eigene Stärken."
-      solution="Wir bringen externe Perspektive und fundierte Branchenexpertise ein — für klare strategische Entscheidungen, die Ihr Unternehmen langfristig stärken."
-      deliverables={["Unternehmens-Analyse","Strategie-Workshops","Wachstums-Roadmap","Positionierungskonzept","Umsetzungsbegleitung","Quarterly Reviews"]}
-      processSteps={[
-        { title: "Analyse", desc: "Status-Quo des Unternehmens, Marktumfeld und Wettbewerb verstehen." },
-        { title: "Strategie-Entwicklung", desc: "Klare Handlungsoptionen und Empfehlungen erarbeiten." },
-        { title: "Roadmap", desc: "Priorisierte Maßnahmenpläne für die Umsetzung erstellen." },
-        { title: "Begleitung", desc: "Umsetzung begleiten und regelmäßig reviewen." },
-      ]}
+    <ServicePageTemplate
+      title="Unternehmensberatung"
+      subtitle={tr.subtitle}
+      description={tr.description}
+      accentColor="magenta"
+      problem={tr.problem}
+      solution={tr.solution}
+      deliverables={tr.deliverables}
+      processSteps={tr.processSteps}
     />
   );
 }

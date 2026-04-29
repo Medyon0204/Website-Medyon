@@ -1,18 +1,22 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ServicePageTemplate } from "@/components/ui/ServicePageTemplate";
-export const metadata: Metadata = { title: "Marktanalyse", description: "Fundierte Marktanalysen für strategische Entscheidungen." };
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
 export default function MarktanalysePage() {
+  const { locale } = useLanguage();
+  const tr = t[locale].servicePages['marktanalyse'];
   return (
-    <ServicePageTemplate title="Marktanalyse" subtitle="Leistung" description="Fundierte Marktanalysen, die Potenziale aufdecken und strategische Entscheidungen untermauern." accentColor="teal"
-      problem="Ohne belastbare Marktdaten basieren strategische Entscheidungen auf Annahmen. Das kostet Ressourcen und birgt Risiken, die vermeidbar wären."
-      solution="Wir liefern präzise, handlungsorientierte Marktanalysen — aus Primär- und Sekundärquellen, aufbereitet in klare strategische Empfehlungen."
-      deliverables={["Wettbewerbsanalyse","Zielgruppenanalyse & Personas","Trendanalyse","Marktgrößen & -potenziale","SWOT-Analyse","Strategische Handlungsempfehlungen"]}
-      processSteps={[
-        { title: "Scope Definition", desc: "Analyseumfang, Märkte und Fragestellungen festlegen." },
-        { title: "Datenerhebung", desc: "Primär- und Sekundärquellen systematisch auswerten." },
-        { title: "Analyse & Synthese", desc: "Daten interpretieren und strategische Schlüsse ziehen." },
-        { title: "Präsentation", desc: "Ergebnisse klar und handlungsorientiert aufbereiten." },
-      ]}
+    <ServicePageTemplate
+      title="Marktanalyse"
+      subtitle={tr.subtitle}
+      description={tr.description}
+      accentColor="teal"
+      problem={tr.problem}
+      solution={tr.solution}
+      deliverables={tr.deliverables}
+      processSteps={tr.processSteps}
     />
   );
 }

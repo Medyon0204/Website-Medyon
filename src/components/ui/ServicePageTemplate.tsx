@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
 
 interface ServicePageTemplateProps {
   title: string;
@@ -9,8 +13,8 @@ interface ServicePageTemplateProps {
   accentColor?: "magenta" | "teal";
   problem: string;
   solution: string;
-  deliverables: string[];
-  processSteps: { title: string; desc: string }[];
+  deliverables: readonly string[];
+  processSteps: readonly { readonly title: string; readonly desc: string }[];
 }
 
 export function ServicePageTemplate({
@@ -23,6 +27,8 @@ export function ServicePageTemplate({
   deliverables,
   processSteps,
 }: ServicePageTemplateProps) {
+  const { locale } = useLanguage();
+  const tr = t[locale].serviceTemplate;
   const isMagenta = accentColor === "magenta";
 
   return (
@@ -35,7 +41,7 @@ export function ServicePageTemplate({
             className="inline-flex items-center gap-2 text-text-muted text-sm hover:text-text-secondary transition-colors"
           >
             <ArrowLeft size={14} />
-            Alle Leistungen
+            {tr.allServices}
           </Link>
         </div>
       </div>
@@ -68,7 +74,7 @@ export function ServicePageTemplate({
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="glass-card rounded-2xl p-7">
-            <h2 className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-4">Das Problem</h2>
+            <h2 className="text-text-muted text-xs font-semibold uppercase tracking-widest mb-4">{tr.problem}</h2>
             <p className="text-text-secondary leading-relaxed">{problem}</p>
           </div>
           <div
@@ -81,7 +87,7 @@ export function ServicePageTemplate({
                 isMagenta ? "text-magenta" : "text-teal"
               }`}
             >
-              Unsere Lösung
+              {tr.solution}
             </h2>
             <p className="text-text-secondary leading-relaxed">{solution}</p>
           </div>
@@ -91,7 +97,7 @@ export function ServicePageTemplate({
       {/* Deliverables */}
       <section className="py-16 px-6 bg-night-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-black text-text-primary mb-8">Was Sie erhalten</h2>
+          <h2 className="text-2xl font-black text-text-primary mb-8">{tr.deliverables}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {deliverables.map((item) => (
               <div key={item} className="flex items-start gap-3 glass-card rounded-xl p-4">
@@ -106,7 +112,7 @@ export function ServicePageTemplate({
       {/* Process */}
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-black text-text-primary mb-8">Unser Vorgehen</h2>
+          <h2 className="text-2xl font-black text-text-primary mb-8">{tr.process}</h2>
           <div className="flex flex-col gap-0">
             {processSteps.map((step, i) => (
               <div key={step.title} className="flex gap-5 pb-8 last:pb-0">
@@ -134,13 +140,13 @@ export function ServicePageTemplate({
       <section className="py-24 px-6 text-center">
         <h2 className="text-3xl font-black text-text-primary mb-4">{title} anfragen</h2>
         <p className="text-text-secondary mb-8 max-w-md mx-auto text-sm">
-          Lernen Sie uns kennen und erfahren Sie, wie wir Ihnen konkret helfen können.
+          {tr.ctaSub}
         </p>
         <Link
           href="/kontakt"
           className="inline-flex items-center gap-2 bg-magenta text-white font-bold px-8 py-4 rounded-lg hover:bg-magenta-light transition-all hover:scale-105 active:scale-95 shadow-[0_0_24px_rgba(230,0,126,0.4)]"
         >
-          Jetzt anfragen
+          {tr.ctaButton}
           <ArrowRight size={16} />
         </Link>
       </section>

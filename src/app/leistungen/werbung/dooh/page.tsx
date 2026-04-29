@@ -1,18 +1,22 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ServicePageTemplate } from "@/components/ui/ServicePageTemplate";
-export const metadata: Metadata = { title: "DOOH – Digital Out-of-Home", description: "Digitale Außenwerbung auf großflächigen Screens." };
+import { useLanguage } from "@/contexts/LanguageContext";
+import t from "@/lib/translations";
+
 export default function DoohPage() {
+  const { locale } = useLanguage();
+  const tr = t[locale].servicePages['dooh'];
   return (
-    <ServicePageTemplate title="DOOH" subtitle="Digital Out-of-Home" description="Digital Out-of-Home Screens für maximale Sichtbarkeit im öffentlichen Raum — dynamisch, skalierbar, messbar." accentColor="teal"
-      problem="Klassische Außenwerbung ist statisch, teuer und schwer zu messen. Unternehmen verpassen die Chance, dynamisch und situationsgerecht zu kommunizieren."
-      solution="Wir konzipieren, produzieren und steuern DOOH-Kampagnen auf digitalen Großflächen — von der Fassade bis zum Innenraum-Screen."
-      deliverables={["Netzwerk-Analyse & Standortauswahl","Kreativkonzept & Motion Design","Content-Produktion","Screen-Steuerungssystem","Echtzeit-Ausspielung","Kampagnen-Analyse"]}
-      processSteps={[
-        { title: "Netzwerk & Standorte", desc: "Geeignete DOOH-Netzwerke und Standorte auswählen." },
-        { title: "Content-Strategie", desc: "Inhalte und Ausspielregeln definieren (Uhrzeit, Wetter, etc.)." },
-        { title: "Kreation & Produktion", desc: "Bewegtbild-Content für maximale Wirkung produzieren." },
-        { title: "Launch & Optimierung", desc: "Ausspielung starten und kontinuierlich optimieren." },
-      ]}
+    <ServicePageTemplate
+      title="DOOH"
+      subtitle={tr.subtitle}
+      description={tr.description}
+      accentColor="teal"
+      problem={tr.problem}
+      solution={tr.solution}
+      deliverables={tr.deliverables}
+      processSteps={tr.processSteps}
     />
   );
 }
