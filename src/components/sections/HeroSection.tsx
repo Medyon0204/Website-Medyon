@@ -1,30 +1,20 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { fadeUpVariants, staggerContainerVariants } from "@/lib/animations";
 
 export function HeroSection() {
-  const { scrollY } = useScroll();
-  const bgY = useTransform(scrollY, [0, 600], [0, 90]);
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background layers */}
       <div className="absolute inset-0 bg-night" />
-      <motion.div style={{ y: bgY }} className="absolute inset-0 pointer-events-none">
-        {/* Magenta radial glow top-center */}
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full bg-magenta/10 blur-[120px]" />
-        {/* Teal glow right */}
         <div className="absolute top-1/4 right-0 w-[500px] h-[500px] rounded-full bg-teal/8 blur-[100px]" />
-        {/* Night blue depth */}
-        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] rounded-full bg-night-300/60 blur-[80px]" />
-      </motion.div>
+      </div>
 
-      {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
@@ -33,7 +23,6 @@ export function HeroSection() {
         }}
       />
 
-      {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-32 w-full">
         <motion.div
           variants={staggerContainerVariants}
@@ -79,20 +68,9 @@ export function HeroSection() {
             </Link>
           </motion.div>
         </motion.div>
-
-        {/* Decorative accent lines */}
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col items-end gap-2 opacity-20">
-          <div className="w-32 h-px bg-gradient-to-l from-magenta to-transparent" />
-          <div className="w-20 h-px bg-gradient-to-l from-teal to-transparent" />
-          <div className="w-40 h-px bg-gradient-to-l from-magenta/50 to-transparent" />
-        </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        style={{ opacity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-text-muted"
-      >
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-text-muted">
         <span className="text-xs uppercase tracking-widest">Scroll</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
@@ -100,7 +78,7 @@ export function HeroSection() {
         >
           <ChevronDown size={18} />
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 }

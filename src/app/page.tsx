@@ -1,10 +1,18 @@
+import dynamic from "next/dynamic";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { MarqueeSection } from "@/components/sections/MarqueeSection";
-import { ServicesSection } from "@/components/sections/ServicesSection";
-import { MethodeSection } from "@/components/sections/MethodeSection";
-import { ReferencesSection } from "@/components/sections/ReferencesSection";
 import { StatsSection } from "@/components/sections/StatsSection";
 import { CTASection } from "@/components/sections/CTASection";
+
+const ServicesSection = dynamic(() =>
+  import("@/components/sections/ServicesSection").then((m) => ({ default: m.ServicesSection }))
+);
+const MethodeSection = dynamic(() =>
+  import("@/components/sections/MethodeSection").then((m) => ({ default: m.MethodeSection }))
+);
+const ReferencesSection = dynamic(() =>
+  import("@/components/sections/ReferencesSection").then((m) => ({ default: m.ReferencesSection }))
+);
 
 export default function HomePage() {
   return (
