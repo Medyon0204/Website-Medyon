@@ -34,6 +34,7 @@
   --animate-marquee-slow: marquee 50s linear infinite;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-fade-up: fade-up 0.6s ease-out forwards;
+  --animate-spotlight: spotlight 2s ease 0.75s 1 forwards;
 
   /* Keyframes */
   @keyframes marquee {
@@ -47,6 +48,10 @@
   @keyframes pulse-glow {
     0%, 100% { box-shadow: 0 0 20px rgba(230, 0, 126, 0.3); }
     50% { box-shadow: 0 0 50px rgba(230, 0, 126, 0.7); }
+  }
+  @keyframes spotlight {
+    0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
+    100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
   }
 }
 
