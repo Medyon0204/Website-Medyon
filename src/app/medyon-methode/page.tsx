@@ -5,7 +5,6 @@ import Link from "next/link";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import t from "@/lib/translations";
-import { MedyonMethodeHero } from "@/components/ui/medyon-methode-hero";
 
 export default function MedyonMethodePage() {
   const { locale } = useLanguage();
@@ -14,9 +13,6 @@ export default function MedyonMethodePage() {
 
   return (
     <>
-      {/* Cinematic scroll hero */}
-      <MedyonMethodeHero />
-
       {/* Hero */}
       <section className="pt-24 pb-20 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-radial from-teal/8 via-transparent to-transparent" />
