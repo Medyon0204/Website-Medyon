@@ -39,7 +39,8 @@ function DropdownPanel({ items, locale }: { items: NavDropdownItem[]; locale: Lo
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 glass-card rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden z-50"
+      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] overflow-hidden z-50 border border-white/10 backdrop-blur-md"
+      style={{ background: "rgba(10, 22, 40, 0.97)" }}
     >
       <div className="py-2">
         {items.map((item) => (
@@ -59,7 +60,7 @@ function DropdownPanel({ items, locale }: { items: NavDropdownItem[]; locale: Lo
                   <Link
                     key={child.href}
                     href={child.href}
-                    className="block px-3 py-2 text-xs text-text-muted hover:text-teal transition-colors"
+                    className="block px-3 py-2 text-xs text-text-muted hover:text-teal hover:bg-teal/8 rounded transition-colors"
                   >
                     {translateNavLabel(child.label, locale)}
                   </Link>

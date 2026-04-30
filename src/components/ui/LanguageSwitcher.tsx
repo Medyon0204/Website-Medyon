@@ -11,8 +11,8 @@ export function LanguageSwitcher() {
         onClick={() => setLocale("de")}
         className={`px-2.5 py-1 transition-colors ${
           locale === "de"
-            ? "bg-white/10 text-text-primary"
-            : "text-text-muted hover:text-text-secondary"
+            ? "bg-magenta/15 text-magenta"
+            : "text-text-secondary hover:text-text-primary"
         }`}
         aria-label="Deutsch"
       >
@@ -23,8 +23,8 @@ export function LanguageSwitcher() {
         onClick={() => setLocale("en")}
         className={`px-2.5 py-1 transition-colors ${
           locale === "en"
-            ? "bg-white/10 text-text-primary"
-            : "text-text-muted hover:text-text-secondary"
+            ? "bg-magenta/15 text-magenta"
+            : "text-text-secondary hover:text-text-primary"
         }`}
         aria-label="English"
       >
