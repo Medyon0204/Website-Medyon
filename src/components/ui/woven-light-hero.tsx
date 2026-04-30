@@ -95,6 +95,7 @@ const WovenCanvas = () => {
     window.addEventListener("mousemove", onMouseMove);
 
     let animId: number;
+    let splashFired = false;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -131,6 +132,11 @@ const WovenCanvas = () => {
       geometry.attributes.position.needsUpdate = true;
       points.rotation.y = elapsed * 0.05;
       renderer.render(scene, camera);
+
+      if (!splashFired) {
+        splashFired = true;
+        window.dispatchEvent(new Event("hero:canvas:ready"));
+      }
     };
 
     animate();

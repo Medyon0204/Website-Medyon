@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/sections/HeroSection";
 import { MarqueeSection } from "@/components/sections/MarqueeSection";
 import { StatsSection } from "@/components/sections/StatsSection";
 import { CTASection } from "@/components/sections/CTASection";
+import { HeroSplash } from "@/components/ui/HeroSplash";
 
 const ServicesSection = dynamic(() =>
   import("@/components/sections/ServicesSection").then((m) => ({ default: m.ServicesSection }))
@@ -17,6 +18,7 @@ const ReferencesSection = dynamic(() =>
 export default function HomePage() {
   return (
     <>
+      <HeroSplash />
       <HeroSection />
       <MarqueeSection />
       <ServicesSection />
