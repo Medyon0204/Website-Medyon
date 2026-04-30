@@ -213,37 +213,36 @@ export function WovenLightHero() {
   if (isMobile) {
     return (
       <section
-        className="relative w-full overflow-hidden flex flex-col"
+        className="relative w-full overflow-hidden flex items-center justify-center"
         style={{ height: "100svh", backgroundColor: "#010a1b" }}
       >
-        {/* Sparkles background */}
+        {/* Sparkles — denser, more impactful */}
         <SparklesCore
           id="mobile-hero-sparkles"
           background="transparent"
-          minSize={0.3}
-          maxSize={1.8}
-          particleDensity={100}
+          minSize={0.4}
+          maxSize={2.2}
+          particleDensity={260}
           className="absolute inset-0 w-full h-full"
           particleColor={MOBILE_PARTICLE_COLORS}
-          speed={0.9}
+          speed={0.8}
           onLoaded={() => window.dispatchEvent(new Event("hero:canvas:ready"))}
         />
 
-        {/* Gradient: keeps top particles visible, darkens bottom for text legibility */}
+        {/* Radial glow behind text for readability */}
         <div
-          className="absolute inset-x-0 bottom-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            height: "70%",
             background:
-              "linear-gradient(to top, #010a1b 55%, rgba(1,10,27,0.75) 78%, transparent 100%)",
+              "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(1,10,27,0.72) 20%, transparent 100%)",
           }}
         />
 
-        {/* Text anchored to bottom */}
-        <div className="absolute inset-x-0 bottom-0 z-10 px-6 pb-14 flex flex-col items-center text-center">
+        {/* Text centered in particles */}
+        <div className="relative z-10 px-6 flex flex-col items-center text-center w-full">
           <motion.h1
-            className="font-black tracking-tight leading-[1.1] mb-4 w-full"
-            style={{ fontSize: "clamp(2rem, 9vw, 2.8rem)" }}
+            className="font-black tracking-tight leading-[1.1] w-full"
+            style={{ fontSize: "clamp(2.4rem, 10vw, 3.4rem)" }}
           >
             <motion.span
               custom={1}
@@ -264,12 +263,24 @@ export function WovenLightHero() {
             </motion.span>
           </motion.h1>
 
-          <motion.p
+          {/* Teal accent line */}
+          <motion.div
             custom={3}
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={textControls}
+            className="my-5 h-px w-16"
+            style={{
+              background: "linear-gradient(90deg, transparent, #00c2cb, transparent)",
+              transformOrigin: "center",
+            }}
+          />
+
+          <motion.p
+            custom={4}
             initial={{ opacity: 0, y: 20 }}
             animate={textControls}
-            className="text-sm leading-relaxed mb-8 max-w-xs"
-            style={{ color: "rgba(240,244,248,0.58)" }}
+            className="text-sm leading-relaxed mb-8 max-w-[280px]"
+            style={{ color: "rgba(240,244,248,0.62)" }}
           >
             {tr.sub}{" "}
             <span style={{ color: "#f0f4f8", fontWeight: 600 }}>{tr.subBold}</span>
@@ -279,11 +290,11 @@ export function WovenLightHero() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={buttonControls}
-            className="flex flex-col items-center gap-3 w-full max-w-xs"
+            className="flex flex-col items-center gap-3 w-full max-w-[280px]"
           >
             <Link
               href="/kontakt"
-              className="w-full inline-flex items-center justify-center gap-2 bg-magenta text-white font-semibold px-7 py-4 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_28px_rgba(230,0,126,0.4)] active:scale-95 text-sm"
+              className="w-full inline-flex items-center justify-center gap-2 bg-magenta text-white font-semibold px-7 py-4 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_28px_rgba(230,0,126,0.45)] active:scale-95 text-sm"
             >
               {tr.ctaPrimary}
               <ArrowRight size={16} />
