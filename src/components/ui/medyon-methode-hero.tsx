@@ -5,9 +5,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
 
-const CARD_START_SCALE_DESKTOP = 0.6;
-const CARD_START_SCALE_MOBILE = 0.82;
-const IMMERSE_OVERFILL = 1.04;
+const CARD_START_SCALE_DESKTOP = 0.65;
+const CARD_START_SCALE_MOBILE = 0.88;
+const IMMERSE_OVERFILL = 1.03;
 
 const STEPS = [
   { num: "01", label: "Analyse", teal: true },
@@ -16,327 +16,399 @@ const STEPS = [
   { num: "04", label: "Optimierung", teal: false },
 ];
 
-// ─── Three.js scene ────────────────────────────────────────────────────────────
+// ─── constants ────────────────────────────────────────────────────────────────
+const RACK_D = 1.3;   // depth in X (into wall)
+const RACK_H = 7.5;   // height in Y
+const RACK_W = 2.6;   // width in Z (along corridor)
+const ROW_STEP = 3.8; // spacing between rack rows in Z
+const ROW_COUNT = 14;
+const RACK_X = 9.5;   // distance from center to rack face (corridor half-width)
 
-type Packet = {
-  mesh: THREE.Mesh;
-  curve: THREE.CatmullRomCurve3;
-  t: number;
-  speed: number;
-};
+// ─── scene builder ────────────────────────────────────────────────────────────
+type Packet = { mesh: THREE.Mesh; curve: THREE.CatmullRomCurve3; t: number; speed: number };
 
-function createDataCenterScene(canvas: HTMLCanvasElement, W: number, H: number) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+function buildScene(canvas: HTMLCanvasElement, W: number, H: number) {
+  // renderer
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setSize(W, H, false);
-  renderer.setClearColor(0x010a1b);
+  renderer.setClearColor(0x010812);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.8;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x010a1b, 0.028);
+  scene.fog = new THREE.FogExp2(0x010812, 0.015);
 
-  const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 160);
-  camera.position.set(0, 10, 26);
-  camera.lookAt(0, 2, 0);
+  const camera = new THREE.PerspectiveCamera(64, W / H, 0.1, 220);
+  camera.position.set(0, 5, 30);
+  camera.lookAt(0, 4.5, 0);
 
-  // Floor grid
-  const grid = new THREE.GridHelper(120, 80, 0x00c2cb, 0x091525);
-  grid.position.y = -2;
+  // ── floor ──────────────────────────────────────────────────────────────────
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x0a1422,
+    metalness: 0.65,
+    roughness: 0.3,
+  });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 140), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(0, -2.01, -35);
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(140, 90, 0x00c2cb, 0x091a28);
+  grid.position.set(0, -2, -35);
   scene.add(grid);
 
-  // ─── Server racks ───────────────────────────────────────────────────────────
-  const rackBodyMat = new THREE.MeshStandardMaterial({
-    color: 0x0d1f36,
-    metalness: 0.75,
-    roughness: 0.35,
-    envMapIntensity: 0.5,
+  // ── ceiling ────────────────────────────────────────────────────────────────
+  const ceilMat = new THREE.MeshStandardMaterial({ color: 0x060d18, roughness: 0.9, metalness: 0.2 });
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(40, 140), ceilMat);
+  ceil.rotation.x = Math.PI / 2;
+  ceil.position.set(0, 9.5, -35);
+  scene.add(ceil);
+
+  // LED strip lights along ceiling centre
+  const ledStripMat = new THREE.MeshStandardMaterial({
+    color: 0xddeeff,
+    emissive: 0xddeeff,
+    emissiveIntensity: 2.5,
   });
+  for (let i = 0; i < 14; i++) {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.06, 5), ledStripMat);
+    strip.position.set(0, 9.4, -i * 9);
+    scene.add(strip);
+  }
 
-  function addRack(x: number, z: number) {
-    const g = new THREE.Group();
+  // Spotlights from ceiling every 9 units
+  for (let i = 0; i < 14; i++) {
+    const spot = new THREE.SpotLight(0xbbd4ff, 2.5, 22, Math.PI * 0.16, 0.55, 1.4);
+    spot.position.set(0, 9.2, -i * 9);
+    spot.target.position.set(0, 0, -i * 9);
+    scene.add(spot, spot.target);
+  }
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 5.5, 1.4), rackBodyMat);
-    g.add(body);
-
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(2.2, 5.5, 1.4)),
-      new THREE.LineBasicMaterial({ color: 0x00c2cb, transparent: true, opacity: 0.45 })
+  // ── cable trays (overhead) ─────────────────────────────────────────────────
+  const trayMat = new THREE.MeshStandardMaterial({ color: 0x182535, metalness: 0.75, roughness: 0.4 });
+  const trayLen = 120;
+  for (const tx of [-5.5, 5.5]) {
+    const tray = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, trayLen), trayMat);
+    tray.position.set(tx, 8.9, -trayLen / 2 + 10);
+    scene.add(tray);
+    const trayEdge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 0.2, trayLen)),
+      new THREE.LineBasicMaterial({ color: 0x2a4060, transparent: true, opacity: 0.5 })
     );
-    g.add(edges);
+    trayEdge.position.copy(tray.position);
+    scene.add(trayEdge);
+  }
 
-    // Slot lines (visual detail)
-    for (let row = 0; row < 8; row++) {
-      const slot = new THREE.Mesh(
-        new THREE.BoxGeometry(1.8, 0.06, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x050f1e, roughness: 1 })
+  // ── materials shared across racks ──────────────────────────────────────────
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x0f1820, metalness: 0.9, roughness: 0.18 });
+  const panelMat = new THREE.MeshStandardMaterial({ color: 0x0e1928, metalness: 0.5, roughness: 0.55 });
+
+  // ── rack builder ───────────────────────────────────────────────────────────
+  // Rack faces the CORRIDOR (inner side in X).
+  // Left rack (cx<0): face on +x side.  Right rack (cx>0): face on -x side.
+  function addRack(cx: number, cz: number) {
+    const g = new THREE.Group();
+    const isLeft = cx < 0;
+    const sign = isLeft ? 1 : -1; // +1 = face toward +x (corridor centre)
+    const faceX = sign * (RACK_D / 2); // inner face X in local coords
+
+    // outer frame
+    g.add(Object.assign(
+      new THREE.Mesh(new THREE.BoxGeometry(RACK_D, RACK_H, RACK_W), frameMat),
+      {}
+    ));
+    // frame edges
+    const fe = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(RACK_D, RACK_H, RACK_W)),
+      new THREE.LineBasicMaterial({ color: 0x1c3454, transparent: true, opacity: 0.55 })
+    );
+    g.add(fe);
+
+    // 1U server panels stacked in Y
+    const U_H = 0.44;
+    const U_COUNT = 15;
+    const LED_COLORS = [0x00dd44, 0x00aaff, 0x00c2cb, 0xffaa00, 0xff4400, 0xe6007e];
+
+    for (let u = 0; u < U_COUNT; u++) {
+      const y = -RACK_H / 2 + U_H * u + U_H / 2;
+
+      // bezel panel (sits proud of the frame face)
+      const bezel = new THREE.Mesh(
+        new THREE.BoxGeometry(0.07, U_H - 0.07, RACK_W - 0.22),
+        panelMat
       );
-      slot.position.set(0, -2.2 + row * 0.55, 0.73);
-      g.add(slot);
-    }
+      bezel.position.set(faceX + sign * 0.01, y, 0);
+      g.add(bezel);
 
-    // LED indicators
-    for (let row = 0; row < 7; row++) {
-      const isMag = Math.random() > 0.6;
-      const active = Math.random() > 0.2;
-      const led = new THREE.Mesh(
-        new THREE.BoxGeometry(0.1, 0.05, 0.06),
+      // horizontal slot divider
+      const slotDiv = new THREE.Mesh(
+        new THREE.BoxGeometry(0.025, 0.012, RACK_W - 0.28),
+        new THREE.MeshStandardMaterial({ color: 0x040810 })
+      );
+      slotDiv.position.set(faceX + sign * 0.02, y + U_H / 2 - 0.03, 0);
+      g.add(slotDiv);
+
+      // status LEDs (1–2 per unit)
+      const active = Math.random() > 0.08;
+      const color = LED_COLORS[Math.floor(Math.random() * LED_COLORS.length)];
+      const led1 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.03, 0.04),
         new THREE.MeshStandardMaterial({
-          color: active ? (isMag ? 0xe6007e : 0x00c2cb) : 0x0a1020,
-          emissive: active ? (isMag ? 0xe6007e : 0x00c2cb) : 0x000000,
-          emissiveIntensity: active ? 5 : 0,
+          color: active ? color : 0x040810,
+          emissive: active ? color : 0x000000,
+          emissiveIntensity: active ? 7 : 0,
         })
       );
-      led.position.set(0.85, -2.0 + row * 0.52, 0.73);
-      g.add(led);
+      led1.position.set(faceX + sign * 0.055, y, RACK_W / 2 - 0.22);
+      g.add(led1);
+
+      if (Math.random() > 0.45 && active) {
+        const led2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.032, 0.024, 0.032),
+          new THREE.MeshStandardMaterial({
+            color: 0x00dd88,
+            emissive: 0x00dd88,
+            emissiveIntensity: 8,
+          })
+        );
+        led2.position.set(faceX + sign * 0.055, y, RACK_W / 2 - 0.36);
+        g.add(led2);
+      }
     }
 
-    g.position.set(x, 0.75, z);
+    // cable management bar on top
+    const topBar = new THREE.Mesh(new THREE.BoxGeometry(RACK_D + 0.05, 0.3, RACK_W + 0.1), trayMat);
+    topBar.position.set(0, RACK_H / 2 + 0.15, 0);
+    g.add(topBar);
+
+    // vertical cable bundle from top bar to ceiling tray (thin cylinder)
+    const bundleLen = 9.5 - (RACK_H / 2 + 0.3 + (-2 + RACK_H));
+    if (bundleLen > 0.2) {
+      const bundle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.12, bundleLen, 5),
+        new THREE.MeshStandardMaterial({ color: 0x0e1c2e, roughness: 0.8 })
+      );
+      bundle.position.set(0, RACK_H / 2 + 0.3 + bundleLen / 2, 0);
+      g.add(bundle);
+    }
+
+    g.position.set(cx, -2 + RACK_H / 2, cz);
     scene.add(g);
   }
 
-  // Two rows of racks (corridor)
-  for (let i = 0; i < 8; i++) {
-    addRack(-6.5, -i * 8);
-    addRack(6.5, -i * 8);
+  for (let i = 0; i < ROW_COUNT; i++) {
+    const z = -i * ROW_STEP;
+    addRack(-RACK_X, z);
+    addRack(RACK_X, z);
   }
 
-  // Additional depth racks (background)
-  for (let i = 0; i < 4; i++) {
-    addRack(-6.5, -64 - i * 8);
-    addRack(6.5, -64 - i * 8);
+  // ── circuit traces on floor ────────────────────────────────────────────────
+  const traceMat = new THREE.LineBasicMaterial({ color: 0x00c2cb, transparent: true, opacity: 0.2 });
+  const magTraceMat = new THREE.LineBasicMaterial({ color: 0xe6007e, transparent: true, opacity: 0.12 });
+
+  function addTrace(pts: THREE.Vector3[], mat: THREE.LineBasicMaterial) {
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
   }
 
-  // ─── Circuit traces on floor ─────────────────────────────────────────────────
-  const traceMat = new THREE.LineBasicMaterial({
-    color: 0x00c2cb,
-    transparent: true,
-    opacity: 0.22,
-  });
-
-  function addTrace(pts: THREE.Vector3[]) {
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), traceMat));
-  }
-
-  // Horizontal connector traces
-  for (let i = 0; i < 40; i++) {
-    const z = -(Math.random() * 80 + 2);
-    const y = -1.95;
-    const x0 = -6.5 + Math.random() * 2;
-    const x1 = 4.5 + Math.random() * 2;
+  for (let i = 0; i < 60; i++) {
+    const z = -(Math.random() * ROW_COUNT * ROW_STEP + 2);
+    const y = -1.96;
+    const x0 = -RACK_X + 0.8 + Math.random() * 1.5;
+    const x1 = RACK_X - 0.8 - Math.random() * 1.5;
     const midX = x0 + (x1 - x0) * (0.3 + Math.random() * 0.4);
-    const jog = (Math.random() - 0.5) * 2.5;
+    const jog = (Math.random() - 0.5) * 3;
+    const mat = Math.random() > 0.75 ? magTraceMat : traceMat;
     addTrace([
       new THREE.Vector3(x0, y, z),
       new THREE.Vector3(midX, y, z),
       new THREE.Vector3(midX, y, z + jog),
       new THREE.Vector3(x1, y, z + jog),
-    ]);
+    ], mat);
   }
-
-  // Depth (longitudinal) traces
-  for (let i = 0; i < 18; i++) {
-    const x = -7 + Math.random() * 14;
+  for (let i = 0; i < 22; i++) {
+    const x = -RACK_X + 1 + Math.random() * (2 * RACK_X - 2);
     addTrace([
-      new THREE.Vector3(x, -1.95, 3),
-      new THREE.Vector3(x, -1.95, -100),
-    ]);
+      new THREE.Vector3(x, -1.96, 5),
+      new THREE.Vector3(x, -1.96, -(ROW_COUNT * ROW_STEP + 8)),
+    ], traceMat);
   }
 
-  // Wall circuit traces (left wall)
-  const wallTraceMat = new THREE.LineBasicMaterial({
-    color: 0xe6007e,
-    transparent: true,
-    opacity: 0.15,
-  });
-  for (let i = 0; i < 12; i++) {
-    const z = -(i * 7 + Math.random() * 3);
-    const y = -2 + Math.random() * 4;
-    scene.add(
-      new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(-7.5, y, z),
-          new THREE.Vector3(-7.5, y, z - 2 - Math.random() * 3),
-        ]),
-        wallTraceMat
-      )
-    );
-  }
-
-  // ─── Data packets ────────────────────────────────────────────────────────────
+  // ── data packets ──────────────────────────────────────────────────────────
   const packets: Packet[] = [];
-  const pGeo = new THREE.SphereGeometry(0.055, 5, 5);
+  const pGeoSm = new THREE.SphereGeometry(0.05, 5, 4);
+  const pGeoMd = new THREE.SphereGeometry(0.075, 6, 5);
 
-  function newCurve(fast = false): THREE.CatmullRomCurve3 {
+  function floorCurve(): THREE.CatmullRomCurve3 {
     const pts: THREE.Vector3[] = [];
-    let x = (Math.random() - 0.5) * 11;
-    let z = fast ? -(Math.random() * 60) : Math.random() * 2;
-    for (let s = 0; s < 9; s++) {
-      pts.push(new THREE.Vector3(x, -1.8 + Math.random() * 0.15, z));
-      if (Math.random() > 0.45) {
-        x = THREE.MathUtils.clamp(x + (Math.random() - 0.5) * 5, -6.5, 6.5);
-      } else {
-        z -= 4 + Math.random() * 6;
-      }
+    let x = (Math.random() - 0.5) * (2 * RACK_X - 3);
+    let z = Math.random() * 4;
+    for (let s = 0; s < 10; s++) {
+      pts.push(new THREE.Vector3(x, -1.82 + Math.random() * 0.1, z));
+      if (Math.random() > 0.45) x = THREE.MathUtils.clamp(x + (Math.random() - 0.5) * 5, -(RACK_X - 1.5), RACK_X - 1.5);
+      else z -= 3 + Math.random() * 7;
     }
     return new THREE.CatmullRomCurve3(pts);
   }
 
-  for (let i = 0; i < 60; i++) {
+  function ceilCurve(tx: number): THREE.CatmullRomCurve3 {
+    const z0 = Math.random() * 5;
+    const z1 = z0 - (20 + Math.random() * 40);
+    return new THREE.CatmullRomCurve3([
+      new THREE.Vector3(tx + (Math.random() - 0.5) * 1, 8.85, z0),
+      new THREE.Vector3(tx + (Math.random() - 0.5) * 0.6, 8.85, (z0 + z1) / 2),
+      new THREE.Vector3(tx + (Math.random() - 0.5) * 1, 8.85, z1),
+    ]);
+  }
+
+  // floor packets (teal + magenta mix)
+  for (let i = 0; i < 50; i++) {
     const isMag = Math.random() > 0.68;
     const mesh = new THREE.Mesh(
-      pGeo,
+      Math.random() > 0.5 ? pGeoSm : pGeoMd,
       new THREE.MeshStandardMaterial({
         color: isMag ? 0xe6007e : 0x00c2cb,
         emissive: isMag ? 0xe6007e : 0x00c2cb,
-        emissiveIntensity: 6,
+        emissiveIntensity: 7,
         transparent: true,
         opacity: 0.9,
       })
     );
     scene.add(mesh);
-    packets.push({
-      mesh,
-      curve: newCurve(true),
-      t: Math.random(),
-      speed: 0.0025 + Math.random() * 0.0055,
-    });
+    packets.push({ mesh, curve: floorCurve(), t: Math.random(), speed: 0.0025 + Math.random() * 0.005 });
   }
 
-  // ─── Lighting ─────────────────────────────────────────────────────────────────
-  scene.add(new THREE.AmbientLight(0x030810, 1.2));
+  // overhead fiber packets
+  for (let i = 0; i < 24; i++) {
+    const tx = Math.random() > 0.5 ? -5.5 : 5.5;
+    const mesh = new THREE.Mesh(
+      pGeoSm,
+      new THREE.MeshStandardMaterial({
+        color: 0x00c2cb,
+        emissive: 0x00c2cb,
+        emissiveIntensity: 9,
+        transparent: true,
+        opacity: 0.88,
+      })
+    );
+    scene.add(mesh);
+    packets.push({ mesh, curve: ceilCurve(tx), t: Math.random(), speed: 0.003 + Math.random() * 0.008 });
+  }
 
-  const tealKey = new THREE.PointLight(0x00c2cb, 4, 30);
-  tealKey.position.set(-4, 5, 8);
-  scene.add(tealKey);
+  // ── lighting ──────────────────────────────────────────────────────────────
+  scene.add(new THREE.AmbientLight(0x050c18, 1.4));
 
-  const magKey = new THREE.PointLight(0xe6007e, 3, 25);
-  magKey.position.set(5, 4, -25);
-  scene.add(magKey);
+  const tealAccent = new THREE.PointLight(0x00c2cb, 2, 22);
+  tealAccent.position.set(-RACK_X + 1, 3, 0);
+  scene.add(tealAccent);
 
-  const deepLight = new THREE.PointLight(0x00c2cb, 2.5, 35);
-  deepLight.position.set(0, 3, -50);
-  scene.add(deepLight);
+  const magAccent = new THREE.PointLight(0xe6007e, 1.5, 20);
+  magAccent.position.set(RACK_X - 1, 3, -28);
+  scene.add(magAccent);
 
-  // Camera-follow light (illuminates what camera sees)
-  const camLight = new THREE.PointLight(0x8888bb, 2, 18);
-  scene.add(camLight);
+  const deepTeal = new THREE.PointLight(0x00c2cb, 1.8, 30);
+  deepTeal.position.set(0, 4, -50);
+  scene.add(deepTeal);
 
-  // ─── Camera path ──────────────────────────────────────────────────────────────
+  const camFill = new THREE.PointLight(0x7799cc, 1.8, 16);
+  scene.add(camFill);
+
+  // ── camera path (entrance → deep corridor) ────────────────────────────────
   const camPath = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 10, 26),
-    new THREE.Vector3(0, 7, 18),
-    new THREE.Vector3(0, 5, 10),
-    new THREE.Vector3(0, 3.5, 2),
-    new THREE.Vector3(0, 2.5, -8),
-    new THREE.Vector3(0, 2, -20),
-    new THREE.Vector3(0, 1.8, -35),
+    new THREE.Vector3(0, 5, 30),
+    new THREE.Vector3(0, 5, 22),
+    new THREE.Vector3(0, 4.5, 13),
+    new THREE.Vector3(0, 4.5, 4),
+    new THREE.Vector3(0, 4.5, -5),
+    new THREE.Vector3(0, 4.5, -16),
+    new THREE.Vector3(0, 4.5, -28),
   ]);
-
   const lookPath = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 2, 5),
-    new THREE.Vector3(0, 1, -2),
-    new THREE.Vector3(0, 0.5, -10),
-    new THREE.Vector3(0, 0, -18),
-    new THREE.Vector3(0, -0.5, -28),
-    new THREE.Vector3(0, -0.5, -38),
-    new THREE.Vector3(0, -1, -50),
+    new THREE.Vector3(0, 4.5, 8),
+    new THREE.Vector3(0, 4.5, 0),
+    new THREE.Vector3(0, 4.5, -8),
+    new THREE.Vector3(0, 4.5, -16),
+    new THREE.Vector3(0, 4.5, -24),
+    new THREE.Vector3(0, 4.5, -34),
+    new THREE.Vector3(0, 4.5, -46),
   ]);
 
-  // ─── Animation loop ───────────────────────────────────────────────────────────
-  let scrollProgress = 0;
+  // ── animation ─────────────────────────────────────────────────────────────
+  let scrollP = 0;
   let time = 0;
-  let animId = 0;
-
-  const camTarget = new THREE.Vector3();
-  const lookTarget = new THREE.Vector3();
+  let rafId = 0;
+  const cPos = new THREE.Vector3();
+  const cLook = new THREE.Vector3();
 
   function animate() {
-    animId = requestAnimationFrame(animate);
-    time += 0.01;
+    rafId = requestAnimationFrame(animate);
+    time += 0.009;
 
-    // Move data packets
     for (const p of packets) {
       p.t += p.speed;
       if (p.t >= 1) {
         p.t = 0;
-        p.curve = newCurve(true);
+        const isOverhead = p.mesh.position.y > 5;
+        p.curve = isOverhead ? ceilCurve(Math.random() > 0.5 ? -5.5 : 5.5) : floorCurve();
       }
-      const pt = p.curve.getPoint(p.t);
-      p.mesh.position.copy(pt);
-      const s = 1 + 0.35 * Math.sin(time * 7 + p.t * 25);
-      p.mesh.scale.setScalar(s);
+      p.mesh.position.copy(p.curve.getPoint(p.t));
+      p.mesh.scale.setScalar(1 + 0.32 * Math.sin(time * 8 + p.t * 28));
     }
 
-    // Camera follows scroll
-    const clamped = Math.min(Math.max(scrollProgress, 0), 1);
-    camPath.getPoint(clamped, camTarget);
-    lookPath.getPoint(clamped, lookTarget);
-    camera.position.lerp(camTarget, 0.055);
-    camera.lookAt(lookTarget);
-
-    // Cam light tracks camera
-    camLight.position.copy(camera.position);
-    camLight.position.y -= 1.5;
+    const t = Math.min(Math.max(scrollP, 0), 1);
+    camPath.getPoint(t, cPos);
+    lookPath.getPoint(t, cLook);
+    camera.position.lerp(cPos, 0.05);
+    camera.lookAt(cLook);
+    camFill.position.copy(camera.position);
+    camFill.position.y -= 1.2;
 
     renderer.render(scene, camera);
   }
-
   animate();
 
   return {
-    setScrollProgress: (p: number) => {
-      scrollProgress = p;
-    },
+    setScrollProgress: (p: number) => { scrollP = p; },
     resize: (w: number, h: number) => {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     },
-    dispose: () => {
-      cancelAnimationFrame(animId);
-      renderer.dispose();
-    },
+    dispose: () => { cancelAnimationFrame(rafId); renderer.dispose(); },
   };
 }
 
-// ─── Component ──────────────────────────────────────────────────────────────────
-
+// ─── component ────────────────────────────────────────────────────────────────
 export function MedyonMethodeHero() {
   const sectionRef = useRef<HTMLElement>(null);
   const titleTopRef = useRef<HTMLHeadingElement>(null);
   const titleBottomRef = useRef<HTMLHeadingElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sceneRef = useRef<ReturnType<typeof createDataCenterScene> | null>(null);
+  const sceneRef = useRef<ReturnType<typeof buildScene> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Initialize Three.js scene once the canvas has layout dimensions
     const initScene = () => {
       if (sceneRef.current) return;
       const w = canvas.offsetWidth;
       const h = canvas.offsetHeight;
       if (w === 0 || h === 0) return;
-      sceneRef.current = createDataCenterScene(canvas, w, h);
+      sceneRef.current = buildScene(canvas, w, h);
     };
 
     const ro = new ResizeObserver(() => {
-      if (!sceneRef.current) {
-        initScene();
-      } else {
-        sceneRef.current.resize(canvas.offsetWidth, canvas.offsetHeight);
-      }
+      if (!sceneRef.current) initScene();
+      else sceneRef.current.resize(canvas.offsetWidth, canvas.offsetHeight);
     });
     ro.observe(canvas);
     initScene();
 
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
-      return () => {
-        ro.disconnect();
-        sceneRef.current?.dispose();
-      };
+      return () => { ro.disconnect(); sceneRef.current?.dispose(); };
     }
 
     gsap.registerPlugin(ScrollTrigger);
@@ -359,9 +431,7 @@ export function MedyonMethodeHero() {
             start: "top top",
             end: "bottom bottom",
             scrub: 1.2,
-            onUpdate: (self) => {
-              sceneRef.current?.setScrollProgress(self.progress);
-            },
+            onUpdate: (self) => sceneRef.current?.setScrollProgress(self.progress),
           },
         })
         .to(titleTop, { xPercent: -130, duration: 1 }, 0)
@@ -389,25 +459,25 @@ export function MedyonMethodeHero() {
     >
       <div
         className="sticky top-0 h-screen overflow-hidden flex items-center justify-center"
-        style={{ background: "#010a1b" }}
+        style={{ background: "#010812" }}
       >
-        {/* Ambient glow behind card */}
+        {/* ambient glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at 18% 50%, rgba(0,194,203,0.07) 0%, transparent 50%), " +
-              "radial-gradient(ellipse at 82% 50%, rgba(230,0,126,0.07) 0%, transparent 50%)",
+              "radial-gradient(ellipse at 15% 50%, rgba(0,194,203,0.06) 0%, transparent 48%), " +
+              "radial-gradient(ellipse at 85% 50%, rgba(230,0,126,0.06) 0%, transparent 48%)",
           }}
         />
 
-        {/* Title top – "Medyon" */}
+        {/* title top – "Medyon" */}
         <h2
           ref={titleTopRef}
           className="absolute left-0 w-full text-center select-none pointer-events-none"
           style={{
-            top: "clamp(2.5rem, 14%, 7rem)",
-            fontSize: "clamp(3.5rem, 11vw, 9rem)",
+            top: "clamp(2rem, 10%, 5.5rem)",
+            fontSize: "clamp(3rem, 10vw, 8rem)",
             fontWeight: 900,
             color: "#f0f4f8",
             letterSpacing: "-0.025em",
@@ -418,83 +488,72 @@ export function MedyonMethodeHero() {
           Medyon
         </h2>
 
-        {/* Card */}
+        {/* card – 16:9 landscape */}
         <div
           ref={cardRef}
           className="relative overflow-hidden"
           style={{
-            width: "min(440px, 86vw)",
-            aspectRatio: "9 / 16",
-            borderRadius: "1.75rem",
-            border: "1px solid rgba(255,255,255,0.09)",
+            width: "min(920px, 94vw)",
+            aspectRatio: "16 / 9",
+            borderRadius: "1.25rem",
+            border: "1px solid rgba(255,255,255,0.08)",
             zIndex: 5,
           }}
         >
-          {/* Three.js canvas fills card */}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full block"
-          />
+          {/* Three.js canvas */}
+          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
 
-          {/* Top accent */}
+          {/* top accent line */}
           <div
             className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
             style={{ height: "2px", background: "linear-gradient(90deg, #00c2cb, #e6007e)" }}
           />
-
-          {/* Bottom accent */}
+          {/* bottom accent line */}
           <div
             className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
             style={{ height: "2px", background: "linear-gradient(90deg, #e6007e, #00c2cb)" }}
           />
 
-          {/* Step labels HUD – bottom overlay */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none p-5 pb-6 flex flex-col gap-2.5"
-            style={{ background: "linear-gradient(to top, rgba(1,10,27,0.92) 0%, transparent 100%)" }}
+          {/* HUD – step labels bottom-right */}
+          <div
+            className="absolute bottom-0 right-0 z-10 pointer-events-none p-5 flex flex-col items-end gap-2"
+            style={{ background: "linear-gradient(to top left, rgba(1,8,18,0.88), transparent)" }}
           >
             {STEPS.map((step, i) => (
-              <div key={step.num} className="flex items-center gap-3">
-                <span
-                  style={{
-                    fontSize: "0.58rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.14em",
-                    color: step.teal ? "#00c2cb" : "#e6007e",
-                    minWidth: "1.6rem",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
+              <div key={step.num} className="flex items-center gap-2.5">
+                <span style={{ fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.14em", color: step.teal ? "#00c2cb" : "#e6007e" }}>
                   {step.num}
                 </span>
-                <div
-                  style={{
-                    flex: 1,
-                    height: "1px",
-                    background: `linear-gradient(90deg, ${step.teal ? "#00c2cb" : "#e6007e"}50, transparent)`,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "clamp(0.9rem, 3vw, 1.25rem)",
-                    fontWeight: 800,
-                    color: i < 2 ? "#f0f4f8" : "#f0f4f8ee",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
+                <div style={{ width: 32, height: 1, background: `linear-gradient(90deg, transparent, ${step.teal ? "#00c2cb" : "#e6007e"}66)` }} />
+                <span style={{ fontSize: "clamp(0.75rem, 2vw, 1rem)", fontWeight: 800, color: i < 2 ? "#f0f4f8" : "#f0f4f8dd", letterSpacing: "-0.01em" }}>
                   {step.label}
                 </span>
               </div>
             ))}
           </div>
+
+          {/* HUD – corner label top-left */}
+          <div
+            className="absolute top-4 left-4 z-10 pointer-events-none"
+            style={{
+              fontSize: "0.55rem",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              color: "rgba(0,194,203,0.7)",
+              textTransform: "uppercase",
+            }}
+          >
+            Medyon · Rechenzentrum
+          </div>
         </div>
 
-        {/* Title bottom – "Methode" gradient */}
+        {/* title bottom – "Methode" gradient */}
         <h2
           ref={titleBottomRef}
           className="absolute left-0 w-full text-center select-none pointer-events-none"
           style={{
-            bottom: "clamp(2.5rem, 14%, 7rem)",
-            fontSize: "clamp(3.5rem, 11vw, 9rem)",
+            bottom: "clamp(2rem, 10%, 5.5rem)",
+            fontSize: "clamp(3rem, 10vw, 8rem)",
             fontWeight: 900,
             background: "linear-gradient(135deg, #e6007e 0%, #00c2cb 100%)",
             WebkitBackgroundClip: "text",
