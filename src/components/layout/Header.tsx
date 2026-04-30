@@ -46,7 +46,7 @@ function DropdownPanel({ items, locale }: { items: NavDropdownItem[]; locale: Lo
           <div key={item.href}>
             <Link
               href={item.href}
-              className="flex items-center justify-between px-4 py-2.5 text-sm text-text-secondary hover:text-white hover:bg-white/6 transition-colors group"
+              className="flex items-center justify-between px-4 py-2.5 text-sm text-text-secondary hover:text-magenta hover:bg-magenta/8 transition-colors group"
             >
               <span>{translateNavLabel(item.label, locale)}</span>
               {item.children && (

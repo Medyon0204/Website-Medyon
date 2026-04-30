@@ -183,12 +183,13 @@ export function WovenLightHero() {
 
   return (
     <section
-      className="relative w-full flex flex-col items-center justify-center overflow-hidden"
+      className="relative w-full flex items-center overflow-hidden"
       style={{ height: "100vh", backgroundColor: "#010a1b" }}
     >
       <WovenCanvas />
 
-      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto w-full">
+      {/* Text block — centered on mobile, left-aligned on desktop */}
+      <div className="relative z-10 w-full px-6 lg:pl-16 xl:pl-24 text-center lg:text-left mx-auto lg:mx-0 lg:max-w-[52%]">
         {/* Label pill */}
         <motion.div
           custom={0}
@@ -233,7 +234,7 @@ export function WovenLightHero() {
           custom={3}
           initial={{ opacity: 0, y: 30 }}
           animate={textControls}
-          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed"
+          className="mt-6 max-w-xl text-lg leading-relaxed mx-auto lg:mx-0"
           style={{ color: "rgba(240, 244, 248, 0.58)" }}
         >
           {tr.sub}{" "}
@@ -245,7 +246,7 @@ export function WovenLightHero() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={buttonControls}
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4"
         >
           <Link
             href="/kontakt"
