@@ -53,6 +53,10 @@
     0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
     100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
   }
+  @keyframes methodePulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
 }
 
 @layer base {
