@@ -1,12 +1,20 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import * as THREE from "three";
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import t from "@/lib/translations";
+import { SparklesCore } from "@/components/ui/sparkles";
+
+// 70% white (#f0f4f8), 30% magenta (#e6007e)
+const MOBILE_PARTICLE_COLORS = [
+  "#f0f4f8", "#f0f4f8", "#f0f4f8", "#f0f4f8", "#f0f4f8",
+  "#f0f4f8", "#f0f4f8",
+  "#e6007e", "#e6007e", "#e6007e",
+];
 
 // Pre-allocate reusable vectors to avoid GC pressure in the animation loop
 const _cur = new THREE.Vector3();
@@ -61,10 +69,9 @@ const WovenCanvas = () => {
       origPositions[i * 3 + 1] = y;
       origPositions[i * 3 + 2] = z;
 
-      // Medyon CI palette: teal (#00c2cb, hue ~0.51) → magenta (#e6007e, hue ~0.91)
       const color = new THREE.Color();
       if (Math.random() < 0.08) {
-        color.setRGB(0.88, 0.94, 1.0); // white sparkle
+        color.setRGB(0.88, 0.94, 1.0);
       } else {
         color.setHSL(0.51 + Math.random() * 0.40, 0.95, 0.62);
       }
@@ -170,23 +177,135 @@ export function WovenLightHero() {
   const tr = t[locale].hero;
   const textControls = useAnimation();
   const buttonControls = useAnimation();
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile === null) return;
+    const delay = isMobile ? 0.5 : 1.2;
     textControls.start((i: number) => ({
       opacity: 1,
       y: 0,
       transition: {
-        delay: i * 0.18 + 1.2,
-        duration: 1.1,
+        delay: i * 0.15 + delay,
+        duration: 1.0,
         ease: [0.2, 0.65, 0.3, 0.9],
       },
     }));
     buttonControls.start({
       opacity: 1,
-      transition: { delay: 2.3, duration: 0.9 },
+      transition: { delay: isMobile ? 1.2 : 2.3, duration: 0.9 },
     });
-  }, [textControls, buttonControls]);
+  }, [isMobile, textControls, buttonControls]);
 
+  // SSR / before hydration: dark placeholder
+  if (isMobile === null) {
+    return <section style={{ height: "100vh", backgroundColor: "#010a1b" }} />;
+  }
+
+  /* ── MOBILE / TABLET HERO ── */
+  if (isMobile) {
+    return (
+      <section
+        className="relative w-full overflow-hidden flex flex-col"
+        style={{ height: "100svh", backgroundColor: "#010a1b" }}
+      >
+        {/* Sparkles background */}
+        <SparklesCore
+          id="mobile-hero-sparkles"
+          background="transparent"
+          minSize={0.3}
+          maxSize={1.8}
+          particleDensity={100}
+          className="absolute inset-0 w-full h-full"
+          particleColor={MOBILE_PARTICLE_COLORS}
+          speed={0.9}
+          onLoaded={() => window.dispatchEvent(new Event("hero:canvas:ready"))}
+        />
+
+        {/* Gradient: keeps top particles visible, darkens bottom for text legibility */}
+        <div
+          className="absolute inset-x-0 bottom-0 pointer-events-none"
+          style={{
+            height: "70%",
+            background:
+              "linear-gradient(to top, #010a1b 55%, rgba(1,10,27,0.75) 78%, transparent 100%)",
+          }}
+        />
+
+        {/* Text anchored to bottom */}
+        <div className="absolute inset-x-0 bottom-0 z-10 px-6 pb-14 flex flex-col items-center text-center">
+          <motion.h1
+            className="font-black tracking-tight leading-[1.1] mb-4 w-full"
+            style={{ fontSize: "clamp(2rem, 9vw, 2.8rem)" }}
+          >
+            <motion.span
+              custom={1}
+              initial={{ opacity: 0, y: 35 }}
+              animate={textControls}
+              className="block"
+              style={{ color: "#f0f4f8" }}
+            >
+              {tr.headline1}
+            </motion.span>
+            <motion.span
+              custom={2}
+              initial={{ opacity: 0, y: 35 }}
+              animate={textControls}
+              className="block text-gradient-dual"
+            >
+              {tr.headline2}
+            </motion.span>
+          </motion.h1>
+
+          <motion.p
+            custom={3}
+            initial={{ opacity: 0, y: 20 }}
+            animate={textControls}
+            className="text-sm leading-relaxed mb-8 max-w-xs"
+            style={{ color: "rgba(240,244,248,0.58)" }}
+          >
+            {tr.sub}{" "}
+            <span style={{ color: "#f0f4f8", fontWeight: 600 }}>{tr.subBold}</span>
+            {tr.subEnd}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={buttonControls}
+            className="flex flex-col items-center gap-3 w-full max-w-xs"
+          >
+            <Link
+              href="/kontakt"
+              className="w-full inline-flex items-center justify-center gap-2 bg-magenta text-white font-semibold px-7 py-4 rounded-lg hover:bg-magenta-light transition-all duration-200 shadow-[0_0_28px_rgba(230,0,126,0.4)] active:scale-95 text-sm"
+            >
+              {tr.ctaPrimary}
+              <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/medyon-methode"
+              className="inline-flex items-center gap-2 font-medium text-sm group transition-colors duration-200 hover:text-white"
+              style={{ color: "rgba(240,244,248,0.55)" }}
+            >
+              {tr.ctaSecondary}
+              <ArrowRight
+                size={15}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
+  /* ── DESKTOP HERO (unverändert) ── */
   return (
     <section
       className="relative w-full flex items-center overflow-hidden"
@@ -194,7 +313,6 @@ export function WovenLightHero() {
     >
       <WovenCanvas />
 
-      {/* Text block — centered on mobile, left-aligned on desktop */}
       <div className="relative z-10 w-full px-6 lg:pl-16 xl:pl-24 text-center lg:text-left mx-auto lg:mx-0 lg:max-w-[52%]">
         {/* Label pill */}
         <motion.div
