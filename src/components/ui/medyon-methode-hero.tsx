@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { useLanguage } from "@/contexts/LanguageContext";
 import t from "@/lib/translations";
 
@@ -85,104 +87,35 @@ function buildTreeScene(canvas: HTMLCanvasElement, W: number, H: number) {
     scene.add(patch);
   }
 
-  // ── trunk ───────────────────────────────────────────────────────────────────
-  const barkMat = new THREE.MeshStandardMaterial({ color: 0x6b3a1f, roughness: 0.93, metalness: 0.02 });
-  const darkBarkMat = new THREE.MeshStandardMaterial({ color: 0x4a2610, roughness: 0.96, metalness: 0.01 });
+  // ── cherry tree GLB (Draco-compressed, 17 MB) ───────────────────────────────
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath("/draco/");
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.setDRACOLoader(dracoLoader);
 
-  const trunkPts = [
-    new THREE.Vector3(0, -1.5, 0),
-    new THREE.Vector3(0.22, 2, 0.14),
-    new THREE.Vector3(-0.16, 5.5, -0.08),
-    new THREE.Vector3(0.12, 9, 0.18),
-    new THREE.Vector3(-0.05, 12.5, 0.05),
-    new THREE.Vector3(0, 15, 0),
-  ];
-  scene.add(Object.assign(
-    new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(trunkPts), 28, 0.82, 10, false), barkMat)
-  ));
+  gltfLoader.load(
+    "/models/cherry_tree_draco.glb",
+    (gltf) => {
+      const model = gltf.scene;
 
-  // bark detail rings (simulate texture via geometry)
-  for (let i = 0; i < 12; i++) {
-    const y = 1 + i * 1.1;
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.82 - i * 0.025, 0.04, 4, 16),
-      darkBarkMat
-    );
-    ring.position.set((Math.random() - 0.5) * 0.2, y, (Math.random() - 0.5) * 0.2);
-    ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.15;
-    scene.add(ring);
-  }
+      // auto-scale: fit tree to 18 scene units tall
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const scale = 18 / Math.max(size.y, 0.1);
+      model.scale.setScalar(scale);
 
-  // surface root buttresses
-  for (let i = 0; i < 6; i++) {
-    const ang = (i / 6) * Math.PI * 2;
-    const rpts = [
-      new THREE.Vector3(0, 0.3, 0),
-      new THREE.Vector3(Math.cos(ang) * 1.6, -0.05, Math.sin(ang) * 1.6),
-      new THREE.Vector3(Math.cos(ang) * 3.2, -0.6, Math.sin(ang) * 3.2),
-      new THREE.Vector3(Math.cos(ang) * 4.8, -1.0, Math.sin(ang) * 4.8),
-    ];
-    const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rpts), 10, 0.26 - i * 0.01, 6, false);
-    scene.add(new THREE.Mesh(geo, barkMat));
-  }
+      // place base of tree exactly at y = 0, centered horizontally
+      const box2 = new THREE.Box3().setFromObject(model);
+      model.position.y = -box2.min.y;
+      const center = box2.getCenter(new THREE.Vector3());
+      model.position.x -= center.x;
+      model.position.z -= center.z;
 
-  // ── main branches ────────────────────────────────────────────────────────────
-  function addBranch(from: THREE.Vector3, dir: THREE.Vector3, len: number, rad: number, depth: number): THREE.Vector3 {
-    const pts = [from.clone()];
-    const c = from.clone();
-    for (let i = 0; i < 6; i++) {
-      const w = new THREE.Vector3((Math.random() - 0.5) * 0.35, 0.1 + Math.random() * 0.12, (Math.random() - 0.5) * 0.35);
-      c.add(dir.clone().add(w).normalize().multiplyScalar(len / 6));
-      pts.push(c.clone());
-    }
-    scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, rad, 6, false), barkMat));
-    if (depth < 2) {
-      for (let s = 0; s < 2; s++) {
-        const subAng = Math.random() * Math.PI * 2;
-        const sd = new THREE.Vector3(Math.cos(subAng) * 0.6 + dir.x * 0.4, dir.y * 0.6 + 0.3 + Math.random() * 0.2, Math.sin(subAng) * 0.6 + dir.z * 0.4).normalize();
-        addBranch(c.clone(), sd, len * 0.65, rad * 0.6, depth + 1);
-      }
-    }
-    return c;
-  }
-
-  for (let i = 0; i < 7; i++) {
-    const ang = (i / 7) * Math.PI * 2 + Math.random() * 0.3;
-    const startY = 9 + Math.random() * 2.5;
-    const dir = new THREE.Vector3(Math.cos(ang) * 0.65, 0.5 + Math.random() * 0.25, Math.sin(ang) * 0.65).normalize();
-    addBranch(new THREE.Vector3((Math.random() - 0.5) * 0.4, startY, (Math.random() - 0.5) * 0.4), dir, 4.5, 0.24, 0);
-  }
-
-  // ── canopy leaf clusters ─────────────────────────────────────────────────────
-  const leafColors = [0x2a6e1a, 0x3a8c24, 0x236016, 0x4aaa30, 0x1e5512, 0x337a1e];
-  function addCluster(x: number, y: number, z: number, r: number) {
-    const lm = new THREE.MeshStandardMaterial({
-      color: leafColors[Math.floor(Math.random() * leafColors.length)],
-      roughness: 0.95,
-      metalness: 0,
-      transparent: true,
-      opacity: 0.92,
-    });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 9, 7), lm);
-    mesh.position.set(x, y, z);
-    scene.add(mesh);
-  }
-
-  // central crown
-  addCluster(0, 18, 0, 7.5);
-  addCluster(-1, 16, 1, 5.8);
-  addCluster(1.5, 16, -1.5, 5.2);
-  addCluster(0, 20.5, 0, 5);
-  addCluster(-2, 19, 2, 4.2);
-  addCluster(2.5, 18.5, 2.5, 4.5);
-  // outer clusters following branches
-  for (let i = 0; i < 12; i++) {
-    const ang = (i / 12) * Math.PI * 2;
-    const r = 3 + Math.random() * 3;
-    const bx = Math.cos(ang) * (3.5 + Math.random() * 3);
-    const bz = Math.sin(ang) * (3.5 + Math.random() * 3);
-    addCluster(bx, 13 + Math.random() * 6, bz, r);
-  }
+      scene.add(model);
+    },
+    undefined,
+    (err) => console.warn("cherry_tree_draco.glb:", err)
+  );
 
   // ── underground root system ──────────────────────────────────────────────────
   const matTeal = new THREE.MeshStandardMaterial({
